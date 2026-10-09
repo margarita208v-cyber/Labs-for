@@ -1,10 +1,18 @@
 # Точка входа проекта measurement_project
 
+import json
 import logging
 from pathlib import Path
 
 from utils.reader import read_numbers
 from utils.statistics import calculate_average, find_min, find_max
+
+CONFIG_PATH = Path("config.json")
+
+
+def load_config():
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def validate_numbers(numbers):
@@ -12,22 +20,28 @@ def validate_numbers(numbers):
         raise ValueError("Список измерений пуст")
 
 
-def main():
-    # Настройка логирования
-    Path("logs").mkdir(exist_ok=True)
+def setup_logging(log_file):
+    log_path = Path(log_file)
+    log_path.parent.mkdir(exist_ok=True)
     logging.basicConfig(
-        filename="logs/app.log",
+        filename=log_path,
         level=logging.INFO,
         format="%(asctime)s | %(levelname)s | %(message)s",
         encoding="utf-8",
         force=True,
     )
 
+
+def main():
+    config = load_config()
+    input_file = Path(config["input_file"])
+    log_file = config["log_file"]
+
+    setup_logging(log_file)
+
     logging.info("Запуск программы")
     print(f"Текущий рабочий каталог: {Path.cwd()}")
-
-    input_file = Path("data") / "measurements.txt"
-    print(f"Путь к файлу: {input_file}")
+    print(f"Файл данных: {input_file}")
 
     try:
         numbers = read_numbers(input_file)
